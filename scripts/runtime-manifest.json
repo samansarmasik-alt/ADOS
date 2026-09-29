@@ -1,0 +1,20 @@
+﻿{
+    "driverVersion":  "2.2.2-A",
+    "driverSigner":  "CN=成都密思听科技有限公司, O=成都密思听科技有限公司, S=四川省, C=CN, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.3=CN, SERIALNUMBER=91510107MA7E8Y2876",
+    "driverThumbprint":  "043589F75FCE2795E7F2CC3E526D46784D5DDAB3",
+    "buildUtc":  "2026-09-29T19:49:51.0153951Z",
+    "files":  [
+                  {
+                      "path":  "dist/ados.exe",
+                      "sha256":  "8dae565464f46b959001196729004b9acb444ad29d33dcc28762ff759c5c8692"
+                  },
+                  {
+                      "path":  "dist/WinDivert.dll",
+                      "sha256":  "c1e060ee19444a259b2162f8af0f3fe8c4428a1c6f694dce20de194ac8d7d9a2"
+                  },
+                  {
+                      "path":  "dist/WinDivert64.sys",
+                      "sha256":  "8da085332782708d8767bcace5327a6ec7283c17cfb85e40b03cd2323a90ddc2"
+                  }
+              ]
+}

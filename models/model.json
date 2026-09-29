@@ -1,0 +1,115 @@
+{
+  "model": "shallow-decision-tree",
+  "model_version": 1,
+  "created_utc": "2026-09-29T19:29:12.249642+00:00",
+  "feature_order": [
+    "packet_rate",
+    "mean_packet_bytes",
+    "syn_ratio",
+    "udp_ratio"
+  ],
+  "feature_semantics": {
+    "window": "completed 1-second windows",
+    "direction": "public inbound traffic; counters grouped by remote/protocol/local-port tuple",
+    "packet_scope": "UDP packets and TCP SYN packets without ACK; other TCP packets bypass this model",
+    "packet_rate": "window packet_count / configured window duration in seconds",
+    "mean_packet_bytes": "mean total IP packet length in bytes for counted packets",
+    "syn_ratio": "1 for TCP SYN-without-ACK buckets; otherwise 0",
+    "udp_ratio": "1 for UDP buckets; otherwise 0"
+  },
+  "source": {
+    "seed": 20260929,
+    "windows_per_session": 96,
+    "sessions_per_archetype": 16,
+    "rows_by_scenario": {
+      "benign-tcp-ordinary": 1536,
+      "benign-tcp-nat-burst": 1536,
+      "benign-tcp-popular-service-spike": 1536,
+      "benign-tcp-connection-surge": 1536,
+      "benign-udp-dns-burst": 1536,
+      "benign-udp-broadcast-app-replies-low-rate": 1536,
+      "benign-udp-broadcast-app-replies-medium-rate": 1536,
+      "benign-udp-broadcast-app-replies-high-rate": 1536,
+      "benign-udp-broadcast-app-replies-top-end": 1536,
+      "attack-syn-high-rate": 1536,
+      "attack-syn-extreme-rate": 1536,
+      "attack-udp-high-rate": 1536,
+      "attack-udp-small-packet-rate": 1536
+    },
+    "scenario_definitions": [
+      "tcp-syn",
+      "tcp-syn",
+      "tcp-syn",
+      "tcp-syn",
+      "udp",
+      "udp",
+      "udp",
+      "udp",
+      "udp",
+      "tcp-syn",
+      "tcp-syn",
+      "udp",
+      "udp"
+    ],
+    "kind": "synthetic-bootstrap"
+  },
+  "validation": {
+    "production_validated": false,
+    "auto_enforce_allowed": false,
+    "reason": "No representative labeled deployment captures have been reviewed; model output is advisory only."
+  },
+  "deployment_context": {
+    "user_scenario": "personal Windows PC used to broadcast live to YouTube via OBS and code on a low-to-medium connection",
+    "benign_tcp_syn_scenarios": "browser/coding/SDK/package activity can create synthetic inbound SYN windows around 1 to 500 packets/s; established TCP payload and outbound live-video stream are outside this model's packet scope",
+    "benign_udp_scenarios": "inbound UDP/QUIC/media/application traffic during broadcast is represented by synthetic windows from roughly 100 to 6000 packets/s and 900 to 1400 mean bytes; outbound OBS video is not measured or processed",
+    "source": "These are scenario assumptions supplied for bootstrap coverage, not measured user traffic. No video frames or stream content enter the model."
+  },
+  "split": {
+    "method": "GroupShuffleSplit",
+    "random_state": 20260929,
+    "test_size": 0.25,
+    "group_column": "simulated_session_or_capture_group"
+  },
+  "metrics": {
+    "rows_total": 19968,
+    "rows_train": 14976,
+    "rows_test": 4992,
+    "groups_train": 156,
+    "groups_test": 52,
+    "group_overlap": 0,
+    "accuracy": 0.9885817307692307,
+    "precision_attack": 0.9747447608812466,
+    "recall_attack": 0.9945175438596491,
+    "f1_attack": 0.9845318860244233,
+    "confusion_matrix_labels_0_1": [
+      [
+        3121,
+        47
+      ],
+      [
+        10,
+        1814
+      ]
+    ]
+  },
+  "tree": {
+    "max_depth": 4,
+    "actual_depth": 4,
+    "leaf_count": 8,
+    "node_count": 15
+  },
+  "tool_versions": {
+    "python": "3.12.13",
+    "numpy": "2.0.2",
+    "scikit_learn": "1.6.1"
+  },
+  "limitations": [
+    "Synthetic bootstrap metrics measure only the generated scenarios.",
+    "Flow-summary datasets such as CIC-IDS2017 aggregate bidirectional full flows and do not match these 1-second inbound runtime windows.",
+    "Runtime sees only UDP and TCP SYN-without-ACK; it does not classify established TCP payload traffic.",
+    "Counters are per remote/protocol/local-port key; a distributed low-rate attack spread across many keys may evade per-key rate thresholds.",
+    "Synthetic legitimate NAT/SYN spikes and high-rate UDP streaming are approximate scenarios, not measurements from deployed networks.",
+    "The requested personal-PC, OBS live-broadcast, and coding profiles are synthetic assumptions until capture labels and false-positive review are available; outgoing video traffic is not in the feature stream.",
+    "Public-source performance is not established; do not auto-enforce from this model."
+  ]
+}

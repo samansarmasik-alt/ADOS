@@ -1,0 +1,40 @@
+$ErrorActionPreference = 'Stop'
+$payload = [Convert]::FromBase64String('__PAYLOAD_BASE64__')
+$expectedHash = '__PAYLOAD_SHA256__'
+$algorithm = [System.Security.Cryptography.SHA256]::Create()
+try {
+    $actualHash = ([BitConverter]::ToString($algorithm.ComputeHash($payload))).Replace('-','').ToLowerInvariant()
+    if ($actualHash -ne $expectedHash) { throw 'Embedded package integrity check failed.' }
+    $cacheRoot = Join-Path $env:LOCALAPPDATA 'ADOSAI'
+    $runtimeRoot = Join-Path $cacheRoot $expectedHash.Substring(0,16)
+    New-Item -ItemType Directory -Path $runtimeRoot -Force | Out-Null
+    Add-Type -AssemblyName System.IO.Compression
+    $memory = New-Object System.IO.MemoryStream(,$payload)
+    $archive = New-Object System.IO.Compression.ZipArchive($memory, [System.IO.Compression.ZipArchiveMode]::Read)
+    try {
+        foreach ($entry in $archive.Entries) {
+            if (!$entry.Name) { continue }
+            $destination = [System.IO.Path]::GetFullPath((Join-Path $runtimeRoot $entry.FullName))
+            $allowedRoot = [System.IO.Path]::GetFullPath($runtimeRoot) + [System.IO.Path]::DirectorySeparatorChar
+            if (!$destination.StartsWith($allowedRoot, [System.StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe embedded package path.' }
+            $stream = $entry.Open()
+            $fileMemory = New-Object System.IO.MemoryStream
+            try { $stream.CopyTo($fileMemory); $content = $fileMemory.ToArray() }
+            finally { $stream.Dispose(); $fileMemory.Dispose() }
+            $contentHash = ([BitConverter]::ToString($algorithm.ComputeHash($content))).Replace('-','')
+            if ((Test-Path -LiteralPath $destination -PathType Leaf) -and (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash -ieq $contentHash) { continue }
+            New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+            [System.IO.File]::WriteAllBytes($destination, $content)
+        }
+    } finally { $archive.Dispose(); $memory.Dispose() }
+} finally { $algorithm.Dispose() }
+if ($env:ADOS_DEMO -eq '1') {
+    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File (Join-Path $runtimeRoot 'scripts/dashboard.ps1') -Demo
+    exit $LASTEXITCODE
+}
+if ($env:ADOS_VALIDATE_ONLY -eq '1') {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $runtimeRoot 'scripts/start.ps1') -ValidateOnly
+    exit $LASTEXITCODE
+}
+& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File (Join-Path $runtimeRoot 'scripts/dashboard.ps1')
+exit $LASTEXITCODE

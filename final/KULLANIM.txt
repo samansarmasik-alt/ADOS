@@ -1,0 +1,13 @@
+﻿ADOS AI — Hızlı kullanım
+
+1. ZIP dosyasını bir klasöre çıkartın.
+2. ADOS.bat dosyasına çift tıklayın.
+3. Windows yönetici izni sorarsa onaylayın.
+4. Açık kalan pencerede durum, görülen/engellenen paket sayısı ve son iki olay güncellenir.
+5. Korumayı durdurmak için Q'ya basın veya pencereyi kapatın; ADOS otomatik kapanır.
+
+Terminal görünümünü güvenle denemek için komut satırından: ADOS.bat --demo
+Demo sayaçları ve olayları simüle eder; gerçek ağ trafiği göndermez ve yönetici izni istemez.
+
+Windows 11 x64 için hazırlanmıştır. Python, derleyici veya internetten dosya indirmez.
+İlk çalıştırmada bileşenlerini kullanıcı profilindeki ADOSAI klasörüne açar.

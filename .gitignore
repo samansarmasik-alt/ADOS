@@ -1,0 +1,17 @@
+.tools/
+.venv/
+.vi3ecode/
+training/data/
+training/downloads/
+training/kaggle/output/
+training/kaggle-probe.json
+dist/
+__pycache__/
+*.py[cod]
+*.log
+*.pid
+.env
+.env.*
+*.pem
+*.pfx
+*.key

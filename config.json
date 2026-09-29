@@ -1,0 +1,6 @@
+{
+  "synLimit": 250,
+  "udpLimit": 10000,
+  "globalSynLimit": 2000,
+  "globalUdpLimit": 50000
+}
