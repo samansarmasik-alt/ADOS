@@ -1,4 +1,5 @@
 # Local CPU training and optional Kaggle CLI access. Runtime inference is pure C.
 numpy>=2.2,<3
 scikit-learn>=1.6,<2
-kaggle>=1.7,<2
+dpkt>=1.9.8,<2
+pyarrow>=19,<25

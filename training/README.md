@@ -1,25 +1,27 @@
-# Model training
+# Gerçek CIC-IDS2017 verisiyle eğitim
 
-Create the CPU-only Python environment and train the bootstrap model with:
+Model, CIC-IDS2017 Cuma günündeki DDoS etiketleri ve bunlara denk gelen PCAP trafiğinden çıkarılan pencerelerle eğitildi. 8.839.309.056 baytlık tam PCAP indirilmez. İndirme betiği zaman damgalarından gerekli aralığı HTTP Range istekleriyle bulur ve yalnızca 18:51–19:21 UTC arasındaki 1.395.776.380 kaynak baytını (çıktı PCAPNG başlığıyla 1.395.776.472 bayt) alır. Yanındaki gerekli etiket Parquet dosyası 23.048.086 bayttır. İki dosya `training/downloads/` altında kalır ve Git'e eklenmez.
+
+## Yerel CPU ile yeniden üretme
+
+PowerShell'de proje kökünden çalıştır:
 
 ```powershell
 py -3.13 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-training.txt
-.\.venv\Scripts\python.exe training\train_model.py
+.\.venv\Scripts\python.exe training\download_cic_ddos_slice.py
+.\.venv\Scripts\python.exe training\pcap_to_windows.py
+.\.venv\Scripts\python.exe training\train_model.py --input training\downloads\cicids2017\windows.csv --seed 20260929 --test-size 0.25
 ```
 
-For captured and labeled windows, pass `--input path\to\windows.csv`. The CSV must contain these columns in one row per **completed 1-second window**:
+İndirme betiği PCAP dilimini ve etiket dosyasını SHA-256 ile doğrular. Doğrulanmış yerel dosyaları tekrar kullanır. `--plan-only` yalnızca byte aralığını hesaplar; veri indirmez. Dönüştürücü hedef cihazı `192.168.10.50` olarak sabitler, karşılıklı IP/port/protokol akışlarıyla etiketleri eşler ve çalışma zamanının görebildiği gelen UDP ile ACK içermeyen TCP SYN paketlerinden 1 saniyelik pencereler çıkarır. Ham PCAP ve etiketler depoda tutulmaz.
 
-```csv
-packet_rate,mean_packet_bytes,syn_ratio,udp_ratio,label,group_id
-12.0,64.0,1.0,0.0,0,session-a
-31.0,118.0,0.0,1.0,0,session-a
-```
+Eğitici `models/model.json`, `models/model.h` ve `models/parity.json` dosyalarını üretir. `--input` verilmezse yalnızca geliştirme amaçlı sentetik başlangıç verisi kullanılır; bu seçenek gerçek modelin yeniden üretimi değildir. Kaggle CLI, yerel CPU eğitimi ve bu veri indirme akışı için gerekli değildir.
 
-`packet_rate` is the number of counted packets divided by the configured window duration. `mean_packet_bytes` is the mean total IP packet length. Runtime counts public inbound UDP packets and TCP SYN packets without ACK, grouped by remote/protocol/local-port. For those separate buckets the ratio pair is fixed: TCP SYN `(syn_ratio=1, udp_ratio=0)`; UDP `(syn_ratio=0, udp_ratio=1)`. Other TCP traffic is outside the current model's packet scope. Labels are `0` benign and `1` attack. `group_id` is an arbitrary pseudonymous capture/session identifier; rows from one group are kept on one side of the grouped train/test split. Do not place IP addresses or other personal data in this field.
+## Veri sınırları
 
-The requested personal-PC scenario is live YouTube broadcasting through OBS plus coding on a low-to-medium connection. Outbound broadcast packets and video frames are not features and are not processed. The synthetic benign scenarios approximate only counted inbound UDP/QUIC/application traffic and selected SYN windows; they are assumptions, not measured observations.
+Çıktı 650 pencereden oluşur: 411 normal, 239 DDoS. Kaynak etiket zamanları dakika hassasiyetindedir; dönüştürücü etiket çakışmalarını dışarıda bırakır ve her pencere için yeterli etiketli paket eşleşmesi arar. Ayrıntılı sayımlar `manifest.json` içinde yazılır.
 
-Capture adapters must aggregate the same tuple and only emit completed windows; do not convert bidirectional whole-flow statistics into these columns. Keep raw captures and labels outside the repository. The exporter stores only the input basename, feature order, group counts, and aggregate metrics. Retraining from a CSV is labeled `local-capture-unvalidated`; output remains advisory and the generated C header keeps `ADOS_MODEL_ENFORCE_ALLOWED` set to `0`. A domain owner must separately review representative captures, false-positive behavior, and deployment results before any enforcement policy is enabled.
+DDoS örnekleri tek bir bağımsız saldırı grubunda toplandığı için veri sızıntısı olmadan iki sınıfı da içeren grup bazlı eğitim/test ayrımı kurulamıyor. Bu nedenle model tüm 650 pencereyle eğitilir; başarı metriği raporlanmaz (`metrics: null`). Model üretim doğrulamasından geçmemiştir, otomatik engelleme kapalıdır ve sonuç yalnızca tavsiye niteliğindedir. Kişisel bilgisayarda OBS ile YouTube yayını, kodlama yükü, yanlış pozitif oranı ve gerçek hat koşulları ayrıca ölçülmemiştir.
 
-`models/model.json` records source, split, tool versions, and held-out metrics. The initial checked-in model is explicitly a synthetic bootstrap trained to exercise the pipeline; its metrics describe generated scenarios only.
+Özellik şeması her tamamlanmış 1 saniyelik pencere için `packet_rate`, `mean_packet_bytes`, `syn_ratio`, `udp_ratio`, `label`, `group_id` sütunlarını kullanır. `group_id` anonim oturum/grup tanımlayıcısıdır; IP adresi veya kişisel veri ekleme. Runtime kurulmuş TCP bağlantılarının verisini ve dışarı giden yayın trafiğini bu modele vermez.

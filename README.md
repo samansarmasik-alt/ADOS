@@ -48,7 +48,7 @@ Yayın ve kodlama yükünü korumak hedeflenmiştir; gelen UDP yanıtları yine 
 
 - Hedef işletim sistemi Windows 10/11 x64'tür. ARM64 ve 32 bit Windows pakette desteklenmez.
 - Gerçek koruma yönetici izni ister ve WinDivert sürücüsünü kullanır. Windows Güvenlik Duvarı kurallarını değiştirmez.
-- Bu başlangıç modeli sentetik başlangıç verisiyle üretilmiştir; gerçek trafik doğruluğu kanıtı değildir. Model ve kurallar yanlış sınıflandırma yapabilir.
+- Model CIC-IDS2017'nin gerekli 30 dakikalık DDoS PCAP diliminden eğitildi; tam 8,84 GB PCAP indirilmez. Modelin bağımsız, sınıf dengeli grup testi kurulamadığından doğruluk metriği yoktur ve model üretimde doğrulanmamıştır. Otomatik model engellemesi kapalıdır.
 - Hız sınırları kişisel bilgisayar için başlangıç değerleridir. Yoğun sunucu trafiği veya yüksek hacimli UDP kullanımında uygun olduğu varsayılmamalıdır.
 - Kontrollerin kapsamı ve bilinen ölçüm sınırları [`VERIFICATION.md`](VERIFICATION.md) dosyasındadır. WinDivert lisans bilgileri [`THIRD-PARTY.md`](THIRD-PARTY.md) içindedir.
 
@@ -61,7 +61,7 @@ powershell -File scripts/build.ps1 -FetchCompiler
 powershell -File scripts/package.ps1
 ```
 
-İlk komut doğrulanmış geliştirici derleyicisini indirip yerel C çalışma zamanını oluşturur. Yeniden eğitim, veri şeması ve sentetik başlangıç modeli hakkında bilgi için [`training/README.md`](training/README.md) dosyasına bak.
+İlk komut doğrulanmış geliştirici derleyicisini indirip yerel C çalışma zamanını oluşturur. Gerçek veriyle eğitimi yeniden üretmek ve yalnızca gerekli PCAP dilimini indirmek için [`training/README.md`](training/README.md) dosyasına bak.
 
 Çalışma zamanı ve sürücü bileşenleri `vendor/windivert/` altındadır; lisans koşullarını dağıtımdan önce incele. Üretilen çalışma paketi karmaları `scripts/runtime-manifest.json` içinde tutulur. Bu karmalar dosya bütünlüğünü denetler; koruma başarısını ölçmez.
 

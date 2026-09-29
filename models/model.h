@@ -7,39 +7,23 @@
 
 #define ADOS_FEATURE_COUNT 4
 #define ADOS_MODEL_ENFORCE_ALLOWED 0
-#define ADOS_MODEL_SOURCE_KIND "synthetic-bootstrap"
+#define ADOS_MODEL_SOURCE_KIND "local-capture-unvalidated"
 #define ADOS_MODEL_METADATA "model.json"
 
 static inline float ados_model_score(const float features[ADOS_FEATURE_COUNT]) {
     if (features == 0) return 0.0f;
-    if ((double)features[0] <= 3679.822998046875) {
-        if ((double)features[0] <= 2847.8580322265625) {
-            if ((double)features[0] <= 2342.37939453125) {
-                if ((double)features[0] <= 1408.0667724609375) {
-                    return 0.0f;
-                } else {
-                    return 0.012849453f;
-                }
-            } else {
-                return 0.145383104f;
-            }
-        } else {
-            if ((double)features[1] <= 1235.7555541992188) {
-                return 0.687226213f;
+    if ((double)features[0] <= 2.5) {
+        if ((double)features[3] <= 0.5) {
+            if ((double)features[1] <= 56) {
+                return 0.0585192216f;
             } else {
                 return 0.0f;
-            }
-        }
-    } else {
-        if ((double)features[1] <= 1013.0321350097656) {
-            if ((double)features[1] <= 778.96356201171875) {
-                return 1.0f;
-            } else {
-                return 0.990870359f;
             }
         } else {
             return 0.0f;
         }
+    } else {
+        return 1.0f;
     }
 }
 

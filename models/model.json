@@ -1,7 +1,7 @@
 {
   "model": "shallow-decision-tree",
   "model_version": 1,
-  "created_utc": "2026-09-29T19:29:12.249642+00:00",
+  "created_utc": "2026-09-29T21:09:03.196132+00:00",
   "feature_order": [
     "packet_rate",
     "mean_packet_bytes",
@@ -18,98 +18,83 @@
     "udp_ratio": "1 for UDP buckets; otherwise 0"
   },
   "source": {
-    "seed": 20260929,
-    "windows_per_session": 96,
-    "sessions_per_archetype": 16,
-    "rows_by_scenario": {
-      "benign-tcp-ordinary": 1536,
-      "benign-tcp-nat-burst": 1536,
-      "benign-tcp-popular-service-spike": 1536,
-      "benign-tcp-connection-surge": 1536,
-      "benign-udp-dns-burst": 1536,
-      "benign-udp-broadcast-app-replies-low-rate": 1536,
-      "benign-udp-broadcast-app-replies-medium-rate": 1536,
-      "benign-udp-broadcast-app-replies-high-rate": 1536,
-      "benign-udp-broadcast-app-replies-top-end": 1536,
-      "attack-syn-high-rate": 1536,
-      "attack-syn-extreme-rate": 1536,
-      "attack-udp-high-rate": 1536,
-      "attack-udp-small-packet-rate": 1536
+    "kind": "local-capture-unvalidated",
+    "input_file": "windows.csv",
+    "group_count": 315,
+    "groups_per_class": {
+      "0": 314,
+      "1": 1
     },
-    "scenario_definitions": [
-      "tcp-syn",
-      "tcp-syn",
-      "tcp-syn",
-      "tcp-syn",
-      "udp",
-      "udp",
-      "udp",
-      "udp",
-      "udp",
-      "tcp-syn",
-      "tcp-syn",
-      "udp",
-      "udp"
-    ],
-    "kind": "synthetic-bootstrap"
+    "rows_per_class": {
+      "0": 411,
+      "1": 239
+    },
+    "rows": 650,
+    "mapping_note": "Accepted only if each row is a single 1-second inbound window with runtime feature semantics.",
+    "dataset": "CIC-IDS2017",
+    "canonical_source": "https://www.unb.ca/cic/datasets/ids-2017.html",
+    "download_mirror": "https://huggingface.co/datasets/bvsam/cic-ids-2017",
+    "capture_slice": {
+      "source_url": "https://huggingface.co/datasets/bvsam/cic-ids-2017/resolve/main/pcap/Friday-WorkingHours.pcap?download=true",
+      "source_file_bytes": 8839309056,
+      "source_lfs_sha256": "beff0dcce1eebc9b2454582f4dc8ed0ba0112b2c619a710bf03af93147254cd0",
+      "source_etag": "\"4afeed7141e4e6aba9707ce717746d91a8cb78cd293dff12d7241e77e5d79030\"",
+      "capture_time_start_utc": "2017-07-07T18:51:00+00:00",
+      "capture_time_end_utc_exclusive": "2017-07-07T19:21:00+00:00",
+      "first_packet_at_or_after_start_utc": "2017-07-07T18:51:00.057104+00:00",
+      "first_packet_at_or_after_end_utc": "2017-07-07T19:21:00.037820+00:00",
+      "byte_range_inclusive": [
+        7250043244,
+        8645819623
+      ],
+      "pcapng_header_bytes_reused_from_start": 92,
+      "selected_source_bytes": 1395776380,
+      "output_file": "training\\downloads\\cicids2017\\Friday-DDos-slice.pcapng",
+      "output_file_bytes": 1395776472,
+      "output_file_sha256": "a303b94ab8a9309fed1dc90e38938dcb6b9951a001a73150fb792be573fd4a8e"
+    },
+    "label_source_files": {
+      "Friday-DDos.parquet": "7c5876d52189fc01af54bad6cf23afe9f7fbc0e3ca6c3595920754f0c3ba8f66"
+    },
+    "label_join": "bidirectional IP 5-tuple + minute-resolution CICFlowMeter timestamp bucket and flow duration (100 ms tolerance); conflicting labels excluded"
   },
   "validation": {
+    "status": "not_available",
+    "metrics": null,
     "production_validated": false,
     "auto_enforce_allowed": false,
-    "reason": "No representative labeled deployment captures have been reviewed; model output is advisory only."
+    "reason": "A class appears in fewer than two independent traffic groups; a class-complete group-held-out split cannot be made without leakage."
   },
   "deployment_context": {
-    "user_scenario": "personal Windows PC used to broadcast live to YouTube via OBS and code on a low-to-medium connection",
-    "benign_tcp_syn_scenarios": "browser/coding/SDK/package activity can create synthetic inbound SYN windows around 1 to 500 packets/s; established TCP payload and outbound live-video stream are outside this model's packet scope",
-    "benign_udp_scenarios": "inbound UDP/QUIC/media/application traffic during broadcast is represented by synthetic windows from roughly 100 to 6000 packets/s and 900 to 1400 mean bytes; outbound OBS video is not measured or processed",
-    "source": "These are scenario assumptions supplied for bootstrap coverage, not measured user traffic. No video frames or stream content enter the model."
+    "public_dataset": "CIC-IDS2017 Friday DDoS capture slice",
+    "user_scenario": "YouTube live broadcast through OBS while coding on a low-to-medium connection",
+    "scenario_coverage": "not measured by this public dataset; needs benign captures from the target PC",
+    "outbound_video": "outside this inbound packet feature stream"
   },
   "split": {
-    "method": "GroupShuffleSplit",
-    "random_state": 20260929,
-    "test_size": 0.25,
-    "group_column": "simulated_session_or_capture_group"
+    "method": "not_available",
+    "group_column": "group_id",
+    "reason": "A class appears in fewer than two independent traffic groups; a class-complete group-held-out split cannot be made without leakage.",
+    "rows_fitted": 650
   },
-  "metrics": {
-    "rows_total": 19968,
-    "rows_train": 14976,
-    "rows_test": 4992,
-    "groups_train": 156,
-    "groups_test": 52,
-    "group_overlap": 0,
-    "accuracy": 0.9885817307692307,
-    "precision_attack": 0.9747447608812466,
-    "recall_attack": 0.9945175438596491,
-    "f1_attack": 0.9845318860244233,
-    "confusion_matrix_labels_0_1": [
-      [
-        3121,
-        47
-      ],
-      [
-        10,
-        1814
-      ]
-    ]
-  },
+  "metrics": null,
   "tree": {
     "max_depth": 4,
-    "actual_depth": 4,
-    "leaf_count": 8,
-    "node_count": 15
+    "actual_depth": 3,
+    "leaf_count": 4,
+    "node_count": 7
   },
   "tool_versions": {
-    "python": "3.12.13",
-    "numpy": "2.0.2",
-    "scikit_learn": "1.6.1"
+    "python": "3.13.7",
+    "numpy": "2.5.3",
+    "scikit_learn": "1.9.1"
   },
   "limitations": [
-    "Synthetic bootstrap metrics measure only the generated scenarios.",
-    "Flow-summary datasets such as CIC-IDS2017 aggregate bidirectional full flows and do not match these 1-second inbound runtime windows.",
+    "Only one public capture slice was used; the DDoS class occurs in one traffic group, so no class-complete group-held-out score is available.",
+    "CIC-IDS2017 flow labels have minute precision; the conversion manifest records the matching and ambiguity policy.",
     "Runtime sees only UDP and TCP SYN-without-ACK; it does not classify established TCP payload traffic.",
-    "Counters are per remote/protocol/local-port key; a distributed low-rate attack spread across many keys may evade per-key rate thresholds.",
-    "Synthetic legitimate NAT/SYN spikes and high-rate UDP streaming are approximate scenarios, not measurements from deployed networks.",
-    "The requested personal-PC, OBS live-broadcast, and coding profiles are synthetic assumptions until capture labels and false-positive review are available; outgoing video traffic is not in the feature stream.",
+    "Counters are per remote/protocol/local-port key; distributed low-rate attacks spread across many keys may evade per-key thresholds.",
+    "The requested OBS, YouTube broadcast, and coding workload has not been measured; outbound video is outside this model's feature stream.",
     "Public-source performance is not established; do not auto-enforce from this model."
   ]
 }
